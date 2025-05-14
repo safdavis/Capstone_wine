@@ -1,0 +1,400 @@
+---
+title: "Wine Quality EDA"
+Names: Safina Davis, Mita Crane, Mackenzie Steinbiss
+output: html_document
+date: "2025-05-01"
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Business Understanding
+
+##What Makes a High-Quality Wine?
+
+Grape Variety and Terroir Grape Variety: Different grape varieties
+possess unique characteristics in terms of flavor, aroma, acidity, and
+tannin levels. These traits, combined with the winemaker’s skill,
+contribute to the overall style and quality of the wine.
+
+Terroir: This French term encompasses the environmental factors that
+affect a crop's phenotype, including unique environment contexts,
+farming practices, and a crop's specific growth habitat. Terroir
+includes climate, soil, topography, and other factors that influence the
+grape's growth and, consequently, the wine's quality.
+
+2.  Viticultural Practices Canopy Management: Proper leaf and shoot
+    management ensures optimal sunlight exposure and air circulation,
+    reducing disease risk and promoting even ripening.
+
+Yield Control: Limiting the number of grape clusters can lead to more
+concentrated flavors, enhancing wine quality.
+
+Harvest Timing: Picking grapes at the right time ensures a balance
+between sugar, acidity, and phenolic maturity.
+
+3.  Winemaking Techniques Fermentation Control: Managing fermentation
+    temperature and duration affects the development of desired flavors
+    and aromas.
+
+Use of Oak: Aging wine in oak barrels can impart additional flavors and
+tannins, contributing to complexity.
+
+Malolactic Fermentation: This secondary fermentation can soften acidity
+and add buttery notes to the wine.
+
+4.  Chemical Composition Alcohol Content: Higher alcohol levels can
+    enhance body and mouthfeel but must be balanced to avoid
+    overpowering other flavors.
+
+Acidity: Acidity provides freshness and structure; too little can make
+wine taste flat, while too much can make it sharp.
+
+Tannins: These compounds add structure and astringency, important for
+red wines and aging potential.
+
+Residual Sugar: The amount of sugar left after fermentation affects
+sweetness and balance.
+
+5.  Sensory Attributes Aroma and Flavor Complexity: High-quality wines
+    exhibit a range of aromas and flavors that evolve over time.
+
+Balance: A harmonious integration of all components—acidity, tannins,
+alcohol, and sweetness—is crucial.
+
+Finish: The length of time flavors linger after swallowing; a longer
+finish is often associated with higher quality.
+
+6.  Aging Potential Wines with the right balance of acidity, tannins,
+    and fruit concentration can develop more complex flavors over time,
+    enhancing quality.
+
+7.  Absence of Faults High-quality wines are free from defects such as
+    oxidation, cork taint, or excessive sulfur dioxide, which can
+    negatively impact flavor and aroma.
+
+##Here I am loading the dataset for white wine into R and seperating the
+commas into columns, and loading necessary libraries
+
+```{r}
+setwd("C:/Users/19177/OneDrive/Desktop")
+
+
+White_wine <- read.csv("winequality-white.csv", sep = ";")
+head(White_wine)
+# Install required packages if not already installed
+if(!require(tidyverse)) install.packages("tidyverse")
+if(!require(corrplot)) install.packages("corrplot")
+if(!require(ggplot2)) install.packages("ggplot2")
+if(!require(dplyr)) install.packages("dplyr")
+if(!require(knitr)) install.packages("knitr")
+if(!require(gridExtra)) install.packages("gridExtra")
+if(!require(car)) install.packages("car")
+if(!require(reshape2)) install.packages("reshape2")
+
+# Load the libraries
+library(tidyverse)
+library(corrplot)
+library(ggplot2)
+library(dplyr)
+library(knitr)
+library(gridExtra)
+library(car)
+library(reshape2)
+```
+
+##Loading and combining datasets
+
+```{r}
+# Set your working directory if needed
+setwd("C:/Users/19177/OneDrive/Desktop")
+# Load the datasets
+white_wine <- read.csv("winequality-white.csv", sep = ";")
+red_wine <- read.csv("winequality-red.csv", sep = ";")
+
+# Add a type variable to distinguish between red and white wine
+white_wine$type <- "white"
+red_wine$type <- "red"
+
+# Combine both datasets
+wine_data <- rbind(white_wine, red_wine)
+
+# Examine the structure of the combined dataset
+str(wine_data)
+```
+
+# Data Understanding
+
+When was the data acquired? - The UCI Wine Quality dataset does not
+specify exact collection dates. However, it was made publicly available
+through the UCI Machine Learning Repository and has been widely used
+since at least 2009. It is reasonable to assume that the data was
+collected sometime prior to that year.
+
+Where was the data acquired? - The data was acquired from
+physicochemical tests conducted by the Portuguese "Vinho Verde" Wine
+Region. All wines originated from northern Portugal, specifically from
+the Minho region.
+
+How was the data acquired? - The dataset was created using
+physicochemical (e.g., pH, alcohol) and sensory (quality scores) tests
+on red and white variants of the Portuguese "Vinho Verde" wine. The
+sensory quality scores were provided by at least three wine experts, and
+the physicochemical properties were measured using standard analytical
+chemistry techniques.
+
+What are the attributes of this dataset? Description of each column in
+the dataset:
+
+fixed acidity - Concentration of non-volatile acids (mainly tartaric).
+Helps preserve wine. volatile acidity - Amount of acetic acid. High
+levels give wine a vinegar taste. citric acid - A weak organic acid that
+adds freshness and flavor. residual sugar - Sugar left after
+fermentation; wines with \>45g/L are considered sweet. chlorides - Salt
+content in wine. High values can indicate undesirable tastes. free
+sulfur dioxide - SO₂ in free form; acts as antioxidant and antimicrobial
+agent. total sulfur dioxide - Total SO₂, including both free and bound
+forms. Excess may affect taste. density - Mass-to-volume ratio; can
+relate to sugar and alcohol content. pH - Indicates acidity/basicity.
+Affects stability, color, and taste. sulphates - Additive for
+stabilization and as an antimicrobial. Higher levels may be perceived as
+bitter. alcohol - Alcohol percentage by volume. Often associated with
+wine body and warmth. quality - Quality score (0–10) based on sensory
+analysis by experts. This is the target variable.
+
+What type of data do these attributes contain?
+
+fixed acidity Numerical (continuous, ratio) volatile acidity Numerical
+(continuous, ratio) citric acid Numerical (continuous, ratio) residual
+sugar Numerical (continuous, ratio) chlorides Numerical (continuous,
+ratio) free sulfur dioxide Numerical (continuous, ratio) total sulfur
+dioxide Numerical (continuous, ratio) density Numerical (continuous,
+ratio) pH Numerical (continuous, interval) sulphates Numerical
+(continuous, ratio) alcohol Numerical (continuous, ratio) quality
+Ordinal (integers from 0 to 10)
+
+#Data exploration Summary statistics and check for missing values
+
+```{r}
+# Summary statistics
+summary(wine_data)
+
+# Check for missing values
+colSums(is.na(wine_data))
+
+# Get dimensions of datasets
+cat("White wine dataset dimensions:", dim(white_wine), "\n")
+cat("Red wine dataset dimensions:", dim(red_wine), "\n")
+cat("Combined dataset dimensions:", dim(wine_data), "\n")
+
+# Check class distribution (quality) in both datasets
+table(white_wine$quality)
+table(red_wine$quality)
+table(wine_data$quality)
+```
+
+Converting wine quality into a factor for analysis
+
+```{r}
+# Convert quality to a factor for classification purposes
+wine_data$quality_category <- ifelse(wine_data$quality >= 7, "high", 
+                               ifelse(wine_data$quality <= 4, "low", "medium"))
+wine_data$quality_category <- factor(wine_data$quality_category, 
+                                    levels = c("low", "medium", "high"))
+
+# Check the distribution of quality categories
+table(wine_data$quality_category)
+table(wine_data$type, wine_data$quality_category)
+```
+
+Examining distribution of values with histograms
+
+```{r}
+# Function to create histogram for a specific variable
+create_histogram <- function(data, variable, binwidth = NULL, title = NULL) {
+  if(is.null(title)) title <- paste("Distribution of", variable)
+  
+  ggplot(data, aes_string(x = variable, fill = "type")) +
+    geom_histogram(position = "dodge", alpha = 0.7, binwidth = binwidth) +
+    labs(title = title, x = variable, y = "Count") +
+    theme_minimal() +
+    scale_fill_manual(values = c("red" = "#E74C3C", "white" = "#F7DC6F"))
+}
+
+# Create histograms for key variables
+p1 <- create_histogram(wine_data, "alcohol", binwidth = 0.2)
+p2 <- create_histogram(wine_data, "pH", binwidth = 0.05)
+p3 <- create_histogram(wine_data, "fixed.acidity", binwidth = 0.5)
+p4 <- create_histogram(wine_data, "volatile.acidity", binwidth = 0.05)
+
+# Display plots in a grid
+grid.arrange(p1, p2, p3, p4, ncol = 2)
+```
+
+Quality distribution by wine type
+
+```{r}
+# Visualize the distribution of quality scores by wine type
+ggplot(wine_data, aes(x = factor(quality), fill = type)) +
+  geom_bar(position = "dodge", alpha = 0.7) +
+  labs(title = "Distribution of Quality Scores by Wine Type",
+       x = "Quality Score", y = "Count") +
+  theme_minimal() +
+  scale_fill_manual(values = c("red" = "#E74C3C", "white" = "#F7DC6F"))
+```
+
+Correlation analysis
+
+```{r}
+# Function to create correlation matrix
+plot_correlation <- function(data, title) {
+  # Remove non-numeric columns
+  data_numeric <- data %>% select_if(is.numeric)
+  
+  # Calculate correlation matrix
+  corr_matrix <- cor(data_numeric)
+  
+  # Plot correlation matrix
+  corrplot(corr_matrix, method = "color", type = "upper", order = "hclust",
+           tl.col = "black", tl.srt = 45, addCoef.col = "black", 
+           number.cex = 0.7, title = title, mar = c(0, 0, 1, 0))
+}
+
+# Plot correlation matrices
+par(mfrow = c(1, 1))
+plot_correlation(wine_data, "Correlation Matrix - All Wines")
+```
+
+Analyzing quality according to key features
+
+```{r}
+# Function to create boxplots
+create_boxplot <- function(data, y_var, title = NULL) {
+  if(is.null(title)) title <- paste(y_var, "vs. Quality by Wine Type")
+  
+  ggplot(data, aes_string(x = "factor(quality)", y = y_var, fill = "type")) +
+    geom_boxplot(alpha = 0.7) +
+    labs(title = title, x = "Quality Score", y = y_var) +
+    theme_minimal() +
+    scale_fill_manual(values = c("red" = "#E74C3C", "white" = "#F7DC6F"))
+}
+
+# Create boxplots for key variables vs quality
+p5 <- create_boxplot(wine_data, "alcohol")
+p6 <- create_boxplot(wine_data, "volatile.acidity")
+p7 <- create_boxplot(wine_data, "sulphates")
+p8 <- create_boxplot(wine_data, "total.sulfur.dioxide")
+
+# Display boxplots in a grid
+grid.arrange(p5, p6, p7, p8, ncol = 2)
+```
+
+Statistical analysis of red and white wine differences
+
+```{r}
+# T-tests for key variables between red and white wines
+t_test_results <- data.frame(
+  Variable = character(),
+  t_value = numeric(),
+  p_value = numeric(),
+  significant = character(),
+  stringsAsFactors = FALSE
+)
+
+variables_to_test <- c("fixed.acidity", "volatile.acidity", "citric.acid", "residual.sugar",
+                      "chlorides", "free.sulfur.dioxide", "total.sulfur.dioxide", 
+                      "density", "pH", "sulphates", "alcohol", "quality")
+
+for(var in variables_to_test) {
+  t_result <- t.test(red_wine[[var]], white_wine[[var]])
+  t_test_results <- rbind(t_test_results, data.frame(
+    Variable = var,
+    t_value = round(t_result$statistic, 3),
+    p_value = round(t_result$p.value, 5),
+    significant = ifelse(t_result$p.value < 0.05, "Yes", "No"),
+    stringsAsFactors = FALSE
+  ))
+}
+
+# Display t-test results
+kable(t_test_results, caption = "T-test Results: Red vs. White Wine")
+```
+
+Linear regression analysis
+
+```{r}
+# setwd("path/to/your/data")
+setwd("C:/Users/19177/OneDrive/Desktop")
+# Load the datasets
+white_wine <- read.csv("winequality-white.csv", sep = ";")
+red_wine <- read.csv("winequality-red.csv", sep = ";")
+
+# Add type labels
+red_wine$type <- "red"
+white_wine$type <- "white"
+
+# Combine into one dataset
+wine_data <- rbind(red_wine, white_wine)
+# Fit linear regression model for quality
+model_all <- lm(quality ~ . - type, data = wine_data)
+
+model_summary <- summary(model_all)
+
+# Display regression results
+model_summary
+
+# Check for multicollinearity
+vif_results <- vif(model_all)
+vif_data <- data.frame(
+  Variable = names(vif_results),
+  VIF = round(vif_results, 2),
+  stringsAsFactors = FALSE
+)
+kable(vif_data, caption = "Variance Inflation Factors")
+
+# Fit separate models for red and white wines
+
+
+model_red <- lm(quality ~ . , data = red_wine[, !(names(red_wine) %in% c("type"))])
+
+model_white <- lm(quality ~ . , data = white_wine[, !(names(white_wine) %in% c("type"))])
+
+
+# Compare key coefficients
+coef_comparison <- data.frame(
+  Variable = names(coef(model_all))[2:length(coef(model_all))],
+  All_Wines = round(coef(model_all)[2:length(coef(model_all))], 4),
+  Red_Wine = round(coef(model_red)[2:length(coef(model_red))], 4),
+  White_Wine = round(coef(model_white)[2:length(coef(model_white))], 4),
+  stringsAsFactors = FALSE
+)
+
+kable(coef_comparison, caption = "Comparison of Regression Coefficients")
+```
+
+Key differences by wine type
+
+```{r}
+# Calculate mean values for key variables by wine type
+wine_means <- wine_data %>%
+  group_by(type) %>%
+  summarize(across(c(fixed.acidity, volatile.acidity, citric.acid, residual.sugar,
+                    chlorides, free.sulfur.dioxide, total.sulfur.dioxide, 
+                    density, pH, sulphates, alcohol, quality), mean))
+
+# Reshape data for visualization
+wine_means_long <- melt(wine_means, id.vars = "type")
+
+# Plot mean values by wine type
+ggplot(wine_means_long, aes(x = variable, y = value, fill = type)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Mean Values of Chemical Properties by Wine Type", 
+       x = "Variable", y = "Mean Value") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_fill_manual(values = c("red" = "#E74C3C", "white" = "#F7DC6F"))
+```
